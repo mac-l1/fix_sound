@@ -1,0 +1,46 @@
+#!/bin/bash
+#set -x
+
+if ! [ -e /etc/asound.conf ]; then
+  echo -n "no /etc/asound.conf found, making one ... "
+
+sudo sh -c "cat << EOF > /etc/asound.conf
+pcm.!default {
+    type plug
+    slave.pcm "dmixer"
+}
+pcm.dsp0 {
+    type plug
+    slave.pcm "dmixer"
+}
+pcm.dmixer {
+    type dmix
+    ipc_key 1024
+    slave {
+        pcm "hw:0,0"
+        period_time 0
+        period_size 1024
+        buffer_size 8192
+        #periods 128
+        rate 44100
+     }
+     bindings {
+        0 0
+        1 1
+     }
+}
+ctl.mixer0 {
+    type hw
+    card 0
+}
+EOF"
+
+  echo "done!"
+  echo "reboot for changes to take effect! also set kodi/spmc settings:"
+  echo "set system->settings->system->audio output->audio ouput devices to dmixer"
+else
+  echo "/etc/asound.conf already exists! nothing to do! in kodi/spmc:"
+  echo "set system->settings->system->audio output->audio ouput devices accordingly"
+fi
+
+exit
